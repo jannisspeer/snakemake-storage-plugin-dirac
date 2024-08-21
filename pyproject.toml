@@ -15,6 +15,7 @@ documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/st
 python = "^3.12"
 snakemake-interface-common = "^1.17.3"
 snakemake-interface-storage-plugins = "^3.3.0"
+dirac-grid = "^8.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"

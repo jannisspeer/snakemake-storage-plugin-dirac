@@ -16,6 +16,9 @@ from snakemake_interface_storage_plugins.storage_object import (
 )
 from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
 
+from DIRAC import initialize
+from DIRAC.Interfaces.API.Dirac import Dirac
+from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
 
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
@@ -68,13 +71,24 @@ class StorageProvider(StorageProviderBase):
         # This is optional and can be removed if not needed.
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
-        pass
+
+        # Initialize DIRAC
+        initialize()
+
+        # Create a DIRAC instance
+        self.dirac = Dirac()
 
     @classmethod
     def example_queries(cls) -> List[ExampleQuery]:
         """Return an example queries with description for this storage provider (at
         least one)."""
-        ...
+        return [
+            ExampleQuery(
+                query="LFN:/organisation/user/s/someuser/somefile.txt",
+                description="Example query for a Logical File Name (LFN).",
+                query_type=QueryType.ANY,
+            )
+        ]
 
     def rate_limiter_key(self, query: str, operation: Operation) -> Any:
         """Return a key for identifying a rate limiter given a query and an operation.
@@ -92,7 +106,7 @@ class StorageProvider(StorageProviderBase):
 
     def use_rate_limiter(self) -> bool:
         """Return False if no rate limiting is needed for this provider."""
-        ...
+        False
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
@@ -100,7 +114,17 @@ class StorageProvider(StorageProviderBase):
         # Ensure that also queries containing wildcards (e.g. {sample}) are accepted
         # and considered valid. The wildcards will be resolved before the storage
         # object is actually used.
-        ...
+        
+        # TODO: Implement a more sophisticated validation
+        if query.startswith("LFN:"):
+            return StorageQueryValidationResult(
+                query=query,
+                valid=True)
+        else:
+            return StorageQueryValidationResult(
+                query=query,
+                valid=False, 
+                reason="Query must start with 'LFN:'")
 
 
 # Required:
@@ -117,7 +141,16 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is optional and can be removed if not needed.
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
-        pass
+
+        # Get the catalog directory
+        self.dirname, self.filename = self.query.rsplit("/", 1)
+        self.fullname = self.query.removeprefix("LFN:")
+        self.CatalogDirectory = returnValueOrRaise(self.provider.dirac.listCatalogDirectory(self.dirname, printOutput=False))
+
+        # check for empty Failed dict (maybe unnecessary because of exists() method)
+        if self.CatalogDirectory["Failed"]:
+            raise FileNotFoundError(f"Directory {self.dirname} does not exist")
+
 
     async def inventory(self, cache: IOCacheStorageInterface):
         """From this file, try to find as much existence and modification date
@@ -139,7 +172,8 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
     def local_suffix(self) -> str:
         """Return a unique suffix for the local path, determined from self.query."""
-        ...
+        # Warning: DIRAC only keeps the file name and removes the rest of the path
+        return self.filename
 
     def cleanup(self):
         """Perform local cleanup of any remainders of the storage object."""
@@ -153,17 +187,23 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def exists(self) -> bool:
         # return True if the object exists
-        ...
+        status_exists = False
+        for key, value in self.CatalogDirectory["Successful"].items():
+            if self.fullname in value["Files"].keys():
+                status_exists = True
+
+        return status_exists
 
     @retry_decorator
     def mtime(self) -> float:
         # return the modification time
-        ...
+        ModDate = self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["ModificationDate"]
+        return ModDate.timestamp()
 
     @retry_decorator
     def size(self) -> int:
         # return the size in bytes
-        ...
+        return self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["Size"]
 
     @retry_decorator
     def retrieve_object(self):
