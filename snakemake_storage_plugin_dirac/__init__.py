@@ -130,6 +130,10 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is optional and can be removed if not needed.
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
+        pass
+
+    def retrieve_catalog_directory(self):
+        """Retrieve the catalog directory for the current directory of self.query()."""
 
         # Get the catalog directory
         self.dirname, self.filename = self.query.rsplit("/", 1)
@@ -180,6 +184,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def exists(self) -> bool:
         # return True if the object exists
+        self.retrieve_catalog_directory()
         status_exists = False
         for key, value in self.CatalogDirectory["Successful"].items():
             if self.fullname in value["Files"].keys():
@@ -190,12 +195,14 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def mtime(self) -> float:
         # return the modification time
+        self.retrieve_catalog_directory()
         ModDate = self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["ModificationDate"]
         return ModDate.timestamp()
 
     @retry_decorator
     def size(self) -> int:
         # return the size in bytes
+        self.retrieve_catalog_directory()
         return self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["Size"]
 
     @retry_decorator
