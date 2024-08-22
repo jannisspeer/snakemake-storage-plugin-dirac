@@ -32,26 +32,11 @@ from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
 # settings.
 @dataclass
 class StorageProviderSettings(StorageProviderSettingsBase):
-    myparam: Optional[int] = field(
+    storage_element: Optional[str] = field(
         default=None,
         metadata={
-            "help": "Some help text",
-            # Optionally request that setting is also available for specification
-            # via an environment variable. The variable will be named automatically as
-            # SNAKEMAKE_<storage-plugin-name>_<param-name>, all upper case.
-            # This mechanism should only be used for passwords, usernames, and other
-            # credentials.
-            # For other items, we rather recommend to let people use a profile
-            # for setting defaults
-            # (https://snakemake.readthedocs.io/en/stable/executing/cli.html#profiles).
+            "help": "The DIRAC storage element to uoload the files to.",
             "env_var": False,
-            # Optionally specify a function that parses the value given by the user.
-            # This is useful to create complex types from the user input.
-            "parse_func": ...,
-            # If a parse_func is specified, you also have to specify an unparse_func
-            # that converts the parsed value back to a string.
-            "unparse_func": ...,
-            # Optionally specify that setting is required when the executor is in use.
             "required": True,
         },
     )
@@ -173,7 +158,11 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def local_suffix(self) -> str:
         """Return a unique suffix for the local path, determined from self.query."""
         # Warning: DIRAC only keeps the file name and removes the rest of the path
-        return self.filename
+        if self.fullname.startswith("/"):
+            loc_suffix = self.fullname.removeprefix("/")
+        else:
+            loc_suffix = self.fullname
+        return loc_suffix
 
     def cleanup(self):
         """Perform local cleanup of any remainders of the storage object."""
@@ -208,7 +197,11 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def retrieve_object(self):
         # Ensure that the object is accessible locally under self.local_path()
-        ...
+        destDir = self.local_path().removesuffix("/" + self.filename)
+        GetFile = returnValueOrRaise(self.provider.dirac.GetFile(self.query, destDir=destDir, printOutput=False))
+
+        if GetFile["Failed"]:
+            raise FileNotFoundError(f"File {self.query} could not be retrieved")
 
     # The following to methods are only required if the class inherits from
     # StorageObjectReadWrite.
@@ -217,12 +210,18 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def store_object(self):
         # Ensure that the object is stored at the location specified by
         # self.local_path().
-        ...
+        addFile = returnValueOrRaise(self.provider.dirac.addFile(self.query, self.local_path(), self.provider.settings.storage_element, printOutput=False))
+
+        if addFile["Failed"]:
+            raise FileNotFoundError(f"File {self.local_path()} could not be stored to {self.query}")
 
     @retry_decorator
     def remove(self):
         # Remove the object from the storage.
-        ...
+        removeFile = returnValueOrRaise(self.provider.dirac.removeFile(self.query, printOutput=False))
+
+        if removeFile["Failed"]:
+            raise FileNotFoundError(f"File {self.query} could not be removed")
 
     # The following to methods are only required if the class inherits from
     # StorageObjectGlob.
