@@ -19,6 +19,7 @@ from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
 from DIRAC import initialize
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
+from DIRAC.FrameworkSystem.private.standardLogging.LogLevels import LogLevel
 
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
@@ -56,6 +57,9 @@ class StorageProvider(StorageProviderBase):
         # This is optional and can be removed if not needed.
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
+
+        # Log level (50 = FATAL)
+        LogLevel(50)
 
         # Initialize DIRAC
         initialize()
@@ -210,7 +214,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def store_object(self):
         # Ensure that the object is stored at the location specified by
         # self.local_path().
-        addFile = returnValueOrRaise(self.provider.dirac.addFile(self.query, self.local_path(), self.provider.settings.storage_element, printOutput=False))
+        addFile = returnValueOrRaise(self.provider.dirac.addFile(self.query, str(self.local_path()), self.provider.settings.storage_element, printOutput=False))
 
         if addFile["Failed"]:
             raise FileNotFoundError(f"File {self.local_path()} could not be stored to {self.query}")
