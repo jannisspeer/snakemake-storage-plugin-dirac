@@ -19,7 +19,7 @@ from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
 from DIRAC import initialize
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
-from DIRAC.FrameworkSystem.private.standardLogging.LogLevels import LogLevel
+from DIRAC.FrameworkSystem.private.standardLogging.LoggingRoot import LoggingRoot
 
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
@@ -58,8 +58,10 @@ class StorageProvider(StorageProviderBase):
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
 
-        # Log level (50 = FATAL)
-        LogLevel(50)
+        # Set the log level
+        dirac_logger = LoggingRoot()
+        dirac_logger.setLevel("FATAL")
+        #dirac_logger.disableLogsFromExternalLibs()
 
         # Initialize DIRAC
         initialize()
