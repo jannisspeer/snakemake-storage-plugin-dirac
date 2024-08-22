@@ -166,6 +166,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def local_suffix(self) -> str:
         """Return a unique suffix for the local path, determined from self.query."""
         # Warning: DIRAC only keeps the file name and removes the rest of the path
+        self.fullname = self.query.removeprefix("LFN:")
         if self.fullname.startswith("/"):
             loc_suffix = self.fullname.removeprefix("/")
         else:
