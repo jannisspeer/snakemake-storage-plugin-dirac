@@ -21,7 +21,7 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Upgrade pip, setuptools, and wheel
-        run: pip install --upgrade pip setuptools whee
+        run: pip install --upgrade pip setuptools wheel
 
       - name: Install poetry
         run: pip install poetry
