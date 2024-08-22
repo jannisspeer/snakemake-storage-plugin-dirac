@@ -34,6 +34,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: poetry
 
+      - name: Install problematic package manually
+        run: pip install gfal2-python==1.12.2 --no-use-pep517
+
       - name: Install Dependencies using Poetry
         run: poetry install
 
