@@ -197,10 +197,10 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def retrieve_object(self):
         # Ensure that the object is accessible locally under self.local_path()
-        destDir = self.local_path().removesuffix("/" + self.filename)
-        GetFile = returnValueOrRaise(self.provider.dirac.GetFile(self.query, destDir=destDir, printOutput=False))
+        destDir = self.local_path().parent
+        getFile = returnValueOrRaise(self.provider.dirac.getFile(self.query, destDir=destDir, printOutput=False))
 
-        if GetFile["Failed"]:
+        if getFile["Failed"]:
             raise FileNotFoundError(f"File {self.query} could not be retrieved")
 
     # The following to methods are only required if the class inherits from

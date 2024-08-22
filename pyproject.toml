@@ -12,10 +12,10 @@ repository = "https://github.com/your/plugin"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/dirac.html"
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 snakemake-interface-common = "^1.17.3"
 snakemake-interface-storage-plugins = "^3.3.0"
-dirac-grid = "^8.0.0"
+DIRAC = "^8.0.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
