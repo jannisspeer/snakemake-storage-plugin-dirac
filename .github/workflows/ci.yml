@@ -22,7 +22,7 @@ jobs:
         run: |
           dnf update --assumeyes
           dnf install python3-pip --assumeyes
-          dnf install python311 --asumeyes
+          dnf install python311 --assumeyes
 
       - name: Install poetry
         run: pip install poetry
