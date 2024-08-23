@@ -22,11 +22,8 @@ jobs:
         run: |
           dnf update --assumeyes
           dnf install python3-pip --assumeyes
+          dnf install python311 --assumeyes
           dnf install git --assumeyes
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
 
       - name: Check install
         run: |
@@ -39,11 +36,6 @@ jobs:
 
       - name: Determine dependencies
         run: poetry lock
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: poetry
    
       - name: Install Dependencies using Poetry
         run: poetry install
