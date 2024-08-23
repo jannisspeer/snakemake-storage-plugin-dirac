@@ -22,7 +22,17 @@ jobs:
         run: |
           dnf update --assumeyes
           dnf install python3-pip --assumeyes
-          dnf install python311 --assumeyes
+          dnf install git --assumeyes
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check install
+        run: |
+          git --version
+          pip --version
+          python --version
 
       - name: Install poetry
         run: pip install poetry
