@@ -22,6 +22,11 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Install pip
+        run: |
+          dnf update
+          dnf install python3-pip
+
       - name: Install poetry
         run: pip install poetry
 
