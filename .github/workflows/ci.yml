@@ -44,6 +44,7 @@ jobs:
           make srpm
           dnf builddep -y gfal2-python-*.src.rpm
           cd
+          pip install gfal2-python
 
       - name: Install poetry
         run: pip install poetry
