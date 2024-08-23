@@ -57,8 +57,8 @@ jobs:
           
       - name: Check install
         run: |
-          pip --version
-          python --version
+          pip3 --version
+          python3 --version
 
       - name: Install poetry
         run: pip install poetry
