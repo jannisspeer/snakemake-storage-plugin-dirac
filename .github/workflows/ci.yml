@@ -34,7 +34,6 @@ jobs:
       - name: Install EPEL
         run: |
           dnf install epel-release --assumeyes
-          dnf clean all
 
       - name: Prepare install of gfal2-python
         run: |
