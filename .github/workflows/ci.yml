@@ -23,11 +23,13 @@ jobs:
           dnf update --assumeyes
           dnf install python3-pip --assumeyes
           dnf install git --assumeyes
+          dnf install python${{ env.PYTHON_VERSION }} --assumeyes
 
       - name: Check install
         run: |
           git --version
           pip --version
+          python --version
 
       - name: Install poetry
         run: pip install poetry
