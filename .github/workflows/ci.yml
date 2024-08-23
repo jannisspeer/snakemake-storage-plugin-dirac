@@ -62,6 +62,9 @@ jobs:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: poetry
 
+      - name:  gfal2
+        run: pip wheel --no-cache-dir --use-pep517 "gfal2-python (==1.12.2)"
+
       - name: Install Dependencies using Poetry
         run: poetry install
 
