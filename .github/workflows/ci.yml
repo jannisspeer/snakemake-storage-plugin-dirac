@@ -87,8 +87,8 @@ jobs:
 
       - name: GFAL
         run: | 
-          apt update
-          apt install gfal2
+          sudo apt update
+          sudo apt install gfal2
              
 
       - name: Install poetry
