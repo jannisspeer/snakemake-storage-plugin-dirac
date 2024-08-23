@@ -22,14 +22,12 @@ jobs:
         run: |
           dnf update --assumeyes
           dnf install python3-pip --assumeyes
-          dnf install python311 --assumeyes
           dnf install git --assumeyes
 
       - name: Check install
         run: |
           git --version
           pip --version
-          python3 --version
 
       - name: Install poetry
         run: pip install poetry
