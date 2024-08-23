@@ -29,7 +29,7 @@ jobs:
         run: |
           git --version
           pip --version
-          python --version
+          python3 --version
 
       - name: Install poetry
         run: pip install poetry
@@ -55,11 +55,6 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           
-      - name: Check install
-        run: |
-          pip3 --version
-          python3 --version
-
       - name: Install poetry
         run: pip install poetry
 
