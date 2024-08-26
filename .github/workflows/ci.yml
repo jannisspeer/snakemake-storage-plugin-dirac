@@ -31,9 +31,9 @@ jobs:
           pip --version
           python3 --version
 
-      - name: Install EPEL
-        run: |
-          dnf install epel-release --assumeyes
+      #- name: Install EPEL
+      #  run: |
+      #    dnf install epel-release --assumeyes
 
       - name: Prepare install of gfal2-python
         run: |
@@ -44,7 +44,6 @@ jobs:
           make srpm
           dnf builddep -y gfal2-python-*.src.rpm
           cd
-          pip install gfal2-python
 
       - name: Install poetry
         run: pip install poetry
