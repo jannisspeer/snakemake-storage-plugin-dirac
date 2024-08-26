@@ -31,9 +31,9 @@ jobs:
           pip --version
           python3 --version
 
-      #- name: Install EPEL
-      #  run: |
-      #    dnf install epel-release --assumeyes
+      - name: Install EPEL
+        run: |
+          dnf install epel-release --assumeyes
 
       - name: Prepare install of gfal2-python
         run: |
