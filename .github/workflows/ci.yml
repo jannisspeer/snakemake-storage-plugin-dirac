@@ -37,15 +37,15 @@ jobs:
       - name: pwd
         run: pwd
 
-      - name: Prepare install of gfal2-python
-        run: |
-          git clone --branch v1.12.2 https://github.com/cern-fts/gfal2-python.git
-          cd gfal2-python/
-          ./ci/fedora-packages.sh
-          cd packaging/
-          make srpm
-          dnf builddep -y gfal2-python-*.src.rpm
-          cd
+      #- name: Prepare install of gfal2-python
+      #  run: |
+      #    git clone --branch v1.12.2 https://github.com/cern-fts/gfal2-python.git
+      #    cd gfal2-python/
+      #    ./ci/fedora-packages.sh
+      #    cd packaging/
+      #    make srpm
+      #    dnf builddep -y gfal2-python-*.src.rpm
+      #    cd
 
       - name: pwd
         run: pwd
