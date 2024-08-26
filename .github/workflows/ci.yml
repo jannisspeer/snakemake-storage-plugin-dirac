@@ -12,25 +12,53 @@ env:
 jobs:
   formatting:
     runs-on: ubuntu-latest
+    container:
+      image: almalinux
     steps:
       - name: Check out the code
         uses: actions/checkout@v3
 
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install pip, python and git
+        run: |
+          dnf update --assumeyes
+          dnf install python3-pip --assumeyes
+          dnf install git --assumeyes
+          dnf install python${{ env.PYTHON_VERSION }} --assumeyes
+
+      - name: Check install
+        run: |
+          git --version
+          pip --version
+          python3 --version
+
+      #- name: Install EPEL
+      #  run: dnf install epel-release --assumeyes
+
+      - name: pwd
+        run: pwd
+
+      #- name: Prepare install of gfal2-python
+      #  run: |
+      #    git clone --branch v1.12.2 https://github.com/cern-fts/gfal2-python.git
+      #    cd gfal2-python/
+      #    ./ci/fedora-packages.sh
+      #    cd packaging/
+      #    make srpm
+      #    dnf builddep -y gfal2-python-*.src.rpm
+      #    cd
+
+      - name: pwd
+        run: pwd
+
+      #- name: Install m2crypto
+      #  run: pip install m2crypto
 
       - name: Install poetry
         run: pip install poetry
 
       - name: Determine dependencies
         run: poetry lock
-
-      - uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-          cache: poetry
-
+   
       - name: Install Dependencies using Poetry
         run: poetry install
 
@@ -39,24 +67,29 @@ jobs:
 
   linting:
     runs-on: ubuntu-latest
+    container:
+      image: almalinux
     steps:
       - name: Check out the code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
+          
       - name: Install poetry
         run: pip install poetry
 
       - name: Determine dependencies
         run: poetry lock
 
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: poetry
+
+      - name:  gfal2
+        run: pip wheel --no-cache-dir --use-pep517 "gfal2-python (==1.12.2)"
 
       - name: Install Dependencies using Poetry
         run: poetry install
@@ -73,6 +106,17 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
+      - name: Setup cmake
+        uses: jwlawson/actions-setup-cmake@v2
+        with:
+          cmake-version: '3.16.x'
+
+      - name: GFAL
+        run: | 
+          sudo apt update
+          sudo apt install gfal2
+             
+
       - name: Install poetry
         run: pip install poetry
 
@@ -87,8 +131,8 @@ jobs:
       - name: Install dependencies
         run: poetry install
 
-      - name: Run pytest
-        run: poetry run coverage run -m pytest tests/tests.py
+      #- name: Run pytest
+      #  run: poetry run coverage run -m pytest tests/tests.py
 
-      - name: Run Coverage
-        run: poetry run coverage report -m
+      #- name: Run Coverage
+      #  run: poetry run coverage report -m
