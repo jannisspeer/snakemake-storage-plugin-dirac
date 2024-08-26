@@ -50,8 +50,8 @@ jobs:
       - name: pwd
         run: pwd
 
-      - name: Install m2crypto
-        run: pip install m2crypto
+      #- name: Install m2crypto
+      #  run: pip install m2crypto
 
       - name: Install poetry
         run: pip install poetry
