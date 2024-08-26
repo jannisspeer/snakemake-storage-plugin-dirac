@@ -45,6 +45,9 @@ jobs:
           dnf builddep -y gfal2-python-*.src.rpm
           cd
 
+      - name: Install m2crypto
+        run: pip install m2crypto
+
       - name: Install poetry
         run: pip install poetry
 
