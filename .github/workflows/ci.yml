@@ -32,8 +32,10 @@ jobs:
           python3 --version
 
       - name: Install EPEL
-        run: |
-          dnf install epel-release --assumeyes
+        run: dnf install epel-release --assumeyes
+
+      - name: pwd
+        run: pwd
 
       - name: Prepare install of gfal2-python
         run: |
@@ -44,6 +46,9 @@ jobs:
           make srpm
           dnf builddep -y gfal2-python-*.src.rpm
           cd
+
+      - name: pwd
+        run: pwd
 
       - name: Install m2crypto
         run: pip install m2crypto
