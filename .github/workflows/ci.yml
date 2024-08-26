@@ -31,8 +31,8 @@ jobs:
           pip --version
           python3 --version
 
-      - name: Install EPEL
-        run: dnf install epel-release --assumeyes
+      #- name: Install EPEL
+      #  run: dnf install epel-release --assumeyes
 
       - name: pwd
         run: pwd
