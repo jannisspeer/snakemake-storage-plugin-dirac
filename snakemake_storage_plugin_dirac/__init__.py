@@ -23,6 +23,7 @@ from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
 from DIRAC.FrameworkSystem.private.standardLogging.LoggingRoot import LoggingRoot
 
 import fnmatch
+import re
 
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
@@ -280,14 +281,12 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # The method has to return concretized queries without any remaining wildcards.
         # Use snakemake_executor_plugins.io.get_constant_prefix(self.query) to get the
         # prefix of the query before the first wildcard.
-        pattern = self.query
+        pattern = re.sub(r"\{[^}]+\}", "*", self.query)
         prefix = get_constant_prefix(pattern)
 
         # Cleanup "LFN:" prefix
         root_dir = prefix.removeprefix("LFN:")
-        if not root_dir.startswith("/"):
-            root_dir = "/" + root_dir
-        root_dir = root_dir.rstrip("/")
+        root_dir = root_dir.rsplit("/", 1)[0] if len(root_dir) > 1 else "/"
 
         # Begin recursive traversal
         yield from self._walk_dirac(root_dir, pattern)
