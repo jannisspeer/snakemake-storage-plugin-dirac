@@ -15,11 +15,14 @@ from snakemake_interface_storage_plugins.storage_object import (
     retry_decorator,
 )
 from snakemake_interface_storage_plugins.io import IOCacheStorageInterface
+from snakemake_interface_storage_plugins.io import get_constant_prefix
 
 from DIRAC import initialize
 from DIRAC.Interfaces.API.Dirac import Dirac
 from DIRAC.Core.Utilities.ReturnValues import returnValueOrRaise
 from DIRAC.FrameworkSystem.private.standardLogging.LoggingRoot import LoggingRoot
+
+import fnmatch
 
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
@@ -36,7 +39,7 @@ class StorageProviderSettings(StorageProviderSettingsBase):
     storage_element: Optional[str] = field(
         default=None,
         metadata={
-            "help": "The DIRAC storage element to uoload the files to.",
+            "help": "The DIRAC storage element to upload the files to.",
             "env_var": False,
             "required": True,
         },
@@ -97,7 +100,7 @@ class StorageProvider(StorageProviderBase):
 
     def use_rate_limiter(self) -> bool:
         """Return False if no rate limiting is needed for this provider."""
-        False
+        return False
 
     @classmethod
     def is_valid_query(cls, query: str) -> StorageQueryValidationResult:
@@ -107,15 +110,22 @@ class StorageProvider(StorageProviderBase):
         # object is actually used.
         
         # TODO: Implement a more sophisticated validation
-        if query.startswith("LFN:"):
-            return StorageQueryValidationResult(
-                query=query,
-                valid=True)
-        else:
+        if not query.startswith("LFN:"):
             return StorageQueryValidationResult(
                 query=query,
                 valid=False, 
-                reason="Query must start with 'LFN:'")
+                reason=f"File {query} must start with 'LFN:'")
+
+        if not query.removeprefix("LFN:").startswith("/"):
+            return StorageQueryValidationResult(
+                query=query,
+                valid=False, 
+                reason=f"File {query} must have an absolute path after 'LFN:'")
+
+        return StorageQueryValidationResult(
+            query=query,
+            valid=True)
+
 
 
 # Required:
@@ -132,20 +142,51 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # This is optional and can be removed if not needed.
         # Alternatively, you can e.g. prepare a connection to your storage backend here.
         # and set additional attributes.
-        pass
 
-    def retrieve_catalog_directory(self):
+        self.fullname = self.query.removeprefix("LFN:")
+
+        parent, name = self.fullname.rsplit("/", 1)
+        self.dirname = parent if parent else "/"
+        self.filename = name
+
+    def _retrieve_catalog_directory(self):
         """Retrieve the catalog directory for the current directory of self.query()."""
 
         # Get the catalog directory
-        self.dirname, self.filename = self.query.rsplit("/", 1)
-        self.fullname = self.query.removeprefix("LFN:")
         self.CatalogDirectory = returnValueOrRaise(self.provider.dirac.listCatalogDirectory(self.dirname, printOutput=False))
 
-        # check for empty Failed dict (maybe unnecessary because of exists() method)
-        if self.CatalogDirectory["Failed"]:
-            raise FileNotFoundError(f"Directory {self.dirname} does not exist")
+    def _walk_dirac(self, dirname: str, pattern: str) -> Iterable[str]:
+        """
+        Recursively walk the DIRAC catalogue starting at dirname
+        and yield all LFNs that match the full pattern.
 
+        dirname: string like "/lhcb/data/2024/run1"
+        pattern: full pattern including "LFN:" prefix
+        """
+
+        # Query DIRAC
+        result = returnValueOrRaise(
+            self.provider.dirac.listCatalogDirectory(dirname, printOutput=False)
+        )
+
+        if not result["Successful"]:
+            return
+
+        info = result["Successful"].get(dirname)
+        if not info:
+            return
+
+        # case A: files in this directory
+        for path in info.get("Files", {}):
+            full_with_prefix= f"LFN:{path}"
+            if fnmatch.fnmatch(full_with_prefix, pattern):
+                yield full_with_prefix
+        # case B: subdirectories
+        for subdir in info.get("SubDirs", {}):
+            # Only recurse if this subtree has a chance to match the pattern
+            subdir_prefix = f"LFN:{subdir}/"
+            if fnmatch.fnmatch(subdir_prefix, pattern + "*"):
+                yield from self._walk_dirac(subdir, pattern)
 
     async def inventory(self, cache: IOCacheStorageInterface):
         """From this file, try to find as much existence and modification date
@@ -167,13 +208,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
     def local_suffix(self) -> str:
         """Return a unique suffix for the local path, determined from self.query."""
-        # Warning: DIRAC only keeps the file name and removes the rest of the path
-        self.fullname = self.query.removeprefix("LFN:")
-        if self.fullname.startswith("/"):
-            loc_suffix = self.fullname.removeprefix("/")
-        else:
-            loc_suffix = self.fullname
-        return loc_suffix
+        return self.fullname.removeprefix("/")
 
     def cleanup(self):
         """Perform local cleanup of any remainders of the storage object."""
@@ -187,25 +222,23 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     @retry_decorator
     def exists(self) -> bool:
         # return True if the object exists
-        self.retrieve_catalog_directory()
-        status_exists = False
-        for key, value in self.CatalogDirectory["Successful"].items():
-            if self.fullname in value["Files"].keys():
-                status_exists = True
-
-        return status_exists
+        self._retrieve_catalog_directory()
+        success = self.CatalogDirectory["Successful"]
+        if self.dirname in success:
+            return self.fullname in success[self.dirname]["Files"]
+        return False
 
     @retry_decorator
     def mtime(self) -> float:
         # return the modification time
-        self.retrieve_catalog_directory()
+        self._retrieve_catalog_directory()
         ModDate = self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["ModificationDate"]
         return ModDate.timestamp()
 
     @retry_decorator
     def size(self) -> int:
         # return the size in bytes
-        self.retrieve_catalog_directory()
+        self._retrieve_catalog_directory()
         return self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["Size"]
 
     @retry_decorator
@@ -247,4 +280,14 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         # The method has to return concretized queries without any remaining wildcards.
         # Use snakemake_executor_plugins.io.get_constant_prefix(self.query) to get the
         # prefix of the query before the first wildcard.
-        ...
+        pattern = self.query
+        prefix = get_constant_prefix(pattern)
+
+        # Cleanup "LFN:" prefix
+        root_dir = prefix.removeprefix("LFN:")
+        if not root_dir.startswith("/"):
+            root_dir = "/" + root_dir
+        root_dir = root_dir.rstrip("/")
+
+        # Begin recursive traversal
+        yield from self._walk_dirac(root_dir, pattern)
