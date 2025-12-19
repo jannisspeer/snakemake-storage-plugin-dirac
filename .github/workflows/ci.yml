@@ -20,16 +20,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
-
       - name: Install poetry
         run: pip install poetry
-
-      - name: Configure Poetry
-        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Determine dependencies
         run: poetry lock
@@ -40,7 +32,7 @@ jobs:
           cache: poetry
 
       - name: Install Dependencies using Poetry
-        run: poetry install
+        run: poetry install --no-root
 
       - name: Check formatting
         run: poetry run black --check .
@@ -55,16 +47,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
-
       - name: Install poetry
         run: pip install poetry
-
-      - name: Configure Poetry
-        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Determine dependencies
         run: poetry lock
@@ -75,7 +59,7 @@ jobs:
           cache: poetry
 
       - name: Install Dependencies using Poetry
-        run: poetry install
+        run: poetry install --no-root
 
       - name: Check code
         run: poetry run flake8
@@ -89,16 +73,8 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
-
       - name: Install poetry
         run: pip install poetry
-
-      - name: Configure Poetry
-        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Determine dependencies
         run: poetry lock
@@ -109,7 +85,7 @@ jobs:
           cache: poetry
 
       - name: Install dependencies
-        run: poetry install
+        run: poetry install --no-root
 
       #- name: Run pytest
       #  run: poetry run coverage run -m pytest tests/tests.py
