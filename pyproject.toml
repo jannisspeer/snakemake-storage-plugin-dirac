@@ -15,12 +15,12 @@ documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/st
 [tool.poetry.dependencies]
 python = "^3.11"
 snakemake-interface-common = "^1.17.3"
-snakemake-interface-storage-plugins = "^3.3.0"
-DIRAC = "^8.0.0"
+snakemake-interface-storage-plugins = ">=3.3,<5.0"
+DIRAC = ">=8.0,<10.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^24.8.0"
 flake8 = "^7.1.1"
 coverage = "^7.6.1"
 pytest = "^8.3.2"
-snakemake = "^8.18.1"
+snakemake = "^8.18,<10.0"
