@@ -25,6 +25,7 @@ from DIRAC.FrameworkSystem.private.standardLogging.LoggingRoot import LoggingRoo
 import fnmatch
 import re
 
+
 # Optional:
 # Define settings for your storage plugin (e.g. host url, credentials).
 # They will occur in the Snakemake CLI as --storage-<storage-plugin-name>-<param-name>
@@ -65,7 +66,7 @@ class StorageProvider(StorageProviderBase):
         # Set the log level
         dirac_logger = LoggingRoot()
         dirac_logger.setLevel("FATAL")
-        #dirac_logger.disableLogsFromExternalLibs()
+        # dirac_logger.disableLogsFromExternalLibs()
 
         # Initialize DIRAC
         initialize()
@@ -109,24 +110,21 @@ class StorageProvider(StorageProviderBase):
         # Ensure that also queries containing wildcards (e.g. {sample}) are accepted
         # and considered valid. The wildcards will be resolved before the storage
         # object is actually used.
-        
+
         # TODO: Implement a more sophisticated validation
         if not query.startswith("LFN:"):
             return StorageQueryValidationResult(
-                query=query,
-                valid=False, 
-                reason=f"File {query} must start with 'LFN:'")
+                query=query, valid=False, reason=f"File {query} must start with 'LFN:'"
+            )
 
         if not query.removeprefix("LFN:").startswith("/"):
             return StorageQueryValidationResult(
                 query=query,
-                valid=False, 
-                reason=f"File {query} must have an absolute path after 'LFN:'")
+                valid=False,
+                reason=f"File {query} must have an absolute path after 'LFN:'",
+            )
 
-        return StorageQueryValidationResult(
-            query=query,
-            valid=True)
-
+        return StorageQueryValidationResult(query=query, valid=True)
 
 
 # Required:
@@ -154,7 +152,9 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
         """Retrieve the catalog directory for the current directory of self.query()."""
 
         # Get the catalog directory
-        self.CatalogDirectory = returnValueOrRaise(self.provider.dirac.listCatalogDirectory(self.dirname, printOutput=False))
+        self.CatalogDirectory = returnValueOrRaise(
+            self.provider.dirac.listCatalogDirectory(self.dirname, printOutput=False)
+        )
 
     def _walk_dirac(self, dirname: str, pattern: str) -> Iterable[str]:
         """
@@ -179,7 +179,7 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
 
         # case A: files in this directory
         for path in info.get("Files", {}):
-            full_with_prefix= f"LFN:{path}"
+            full_with_prefix = f"LFN:{path}"
             if fnmatch.fnmatch(full_with_prefix, pattern):
                 yield full_with_prefix
         # case B: subdirectories
@@ -233,20 +233,26 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def mtime(self) -> float:
         # return the modification time
         self._retrieve_catalog_directory()
-        ModDate = self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["ModificationDate"]
+        ModDate = self.CatalogDirectory["Successful"][self.dirname]["Files"][
+            self.fullname
+        ]["MetaData"]["ModificationDate"]
         return ModDate.timestamp()
 
     @retry_decorator
     def size(self) -> int:
         # return the size in bytes
         self._retrieve_catalog_directory()
-        return self.CatalogDirectory["Successful"][self.dirname]["Files"][self.fullname]["MetaData"]["Size"]
+        return self.CatalogDirectory["Successful"][self.dirname]["Files"][
+            self.fullname
+        ]["MetaData"]["Size"]
 
     @retry_decorator
     def retrieve_object(self):
         # Ensure that the object is accessible locally under self.local_path()
         destDir = self.local_path().parent
-        getFile = returnValueOrRaise(self.provider.dirac.getFile(self.query, destDir=destDir, printOutput=False))
+        getFile = returnValueOrRaise(
+            self.provider.dirac.getFile(self.query, destDir=destDir, printOutput=False)
+        )
 
         if getFile["Failed"]:
             raise FileNotFoundError(f"File {self.query} could not be retrieved")
@@ -258,15 +264,26 @@ class StorageObject(StorageObjectRead, StorageObjectWrite, StorageObjectGlob):
     def store_object(self):
         # Ensure that the object is stored at the location specified by
         # self.local_path().
-        addFile = returnValueOrRaise(self.provider.dirac.addFile(self.query, str(self.local_path()), self.provider.settings.storage_element, printOutput=False))
+        addFile = returnValueOrRaise(
+            self.provider.dirac.addFile(
+                self.query,
+                str(self.local_path()),
+                self.provider.settings.storage_element,
+                printOutput=False,
+            )
+        )
 
         if addFile["Failed"]:
-            raise FileNotFoundError(f"File {self.local_path()} could not be stored to {self.query}")
+            raise FileNotFoundError(
+                f"File {self.local_path()} could not be stored to {self.query}"
+            )
 
     @retry_decorator
     def remove(self):
         # Remove the object from the storage.
-        removeFile = returnValueOrRaise(self.provider.dirac.removeFile(self.query, printOutput=False))
+        removeFile = returnValueOrRaise(
+            self.provider.dirac.removeFile(self.query, printOutput=False)
+        )
 
         if removeFile["Failed"]:
             raise FileNotFoundError(f"File {self.query} could not be removed")
