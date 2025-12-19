@@ -9,7 +9,7 @@ description = "A Snakemake storage plugin for the DIRAC Data Management System (
 authors = [ "Jannis Speer <jannis.speer@tutanota.com>",]
 readme = "README.md"
 license = "MIT"
-repository = "https://github.com/your/plugin"
+repository = "https://github.com/jannisspeer/snakemake-storage-plugin-dirac"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/dirac.html"
 
 [tool.poetry.dependencies]
