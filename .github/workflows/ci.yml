@@ -23,7 +23,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev libgfal2-3 gfal2
+          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
 
       - name: Install poetry
@@ -56,7 +56,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev libgfal2-3 gfal2
+          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
 
       - name: Install poetry
@@ -88,7 +88,7 @@ jobs:
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev libgfal2-3 gfal2
+          sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
 
       - name: Install poetry
