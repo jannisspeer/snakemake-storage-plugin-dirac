@@ -44,7 +44,7 @@ jobs:
       
       - name: Install Dependencies using Poetry
         run: |
-          poetry install
+          poetry install --only dev
 
       - name: Publish to PyPi
         env:
