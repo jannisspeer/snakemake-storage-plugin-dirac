@@ -25,6 +25,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
+      - name: Configure Poetry
+        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Install poetry
         run: pip install poetry
@@ -58,6 +60,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
+      - name: Configure Poetry
+        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Install poetry
         run: pip install poetry
@@ -90,6 +94,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y cmake libboost-all-dev python3-dev libglib2.0-dev pkg-config libgfal2-dev gfal2 python3-gfal2
 
+      - name: Configure Poetry
+        run: poetry config virtualenvs.options.system-site-packages true
 
       - name: Install poetry
         run: pip install poetry
