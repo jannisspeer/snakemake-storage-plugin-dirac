@@ -13,7 +13,7 @@ repository = "https://github.com/jannisspeer/snakemake-storage-plugin-dirac"
 documentation = "https://snakemake.github.io/snakemake-plugin-catalog/plugins/storage/dirac.html"
 
 [tool.poetry.dependencies]
-python = "^3.11"
+python = ">=3.11,<3.13"
 snakemake-interface-common = "^1.17.3"
 snakemake-interface-storage-plugins = ">=3.3,<5.0"
 DIRAC = ">=8.0,<10.0"
