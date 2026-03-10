@@ -1,0 +1,2 @@
+[DIRAC](diracgrid.org) is an open-source interware platform for distributed computing that provides a unified interface to heterogeneous computing and storage resources across grid and cloud infrastructures.
+This plugin enables workflows to seamlessly read and write files to DIRAC-managed storage systems.
