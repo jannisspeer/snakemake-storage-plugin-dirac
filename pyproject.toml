@@ -4,7 +4,7 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry]
 name = "snakemake-storage-plugin-dirac"
-version = "0.1.0"
+version = "0.1.1"
 description = "A Snakemake storage plugin for the DIRAC Data Management System (DMS)."
 authors = [ "Jannis Speer <jannis.speer@tutanota.com>",]
 readme = "README.md"
